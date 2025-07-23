@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_ecr_repository" "hotstar" {
-  name = "hotstar"
+  name = "swiggy"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -13,8 +13,11 @@ resource "aws_ecr_repository" "hotstar" {
     encryption_type = "AES256"
   }
 
+  # ✅ This line tells AWS to delete all images before deleting the repo
+  force_delete = true
+
   tags = {
     Environment = "production"
-    Service     = "hotstar"
+    Service     = "swiggy"
   }
 }
