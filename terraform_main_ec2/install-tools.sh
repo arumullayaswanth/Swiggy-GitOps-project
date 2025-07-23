@@ -64,12 +64,16 @@ sudo usermod -aG docker jenkins
 sudo systemctl enable docker
 sudo systemctl start docker
 sudo chmod 777 /var/run/docker.sock
-docker --version  
+sudo docker --version  
 
 # Install Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
-docker-compose --version
+sudo docker-compose --version
+
+# Run SonarQube using Docker
+sudo docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
+sudo docker ps
 
 # Install Trivy
 sudo rpm -ivh https://github.com/aquasecurity/trivy/releases/download/v0.48.3/trivy_0.48.3_Linux-64bit.rpm
@@ -78,9 +82,7 @@ trivy --version
 # Install vault
 sudo yum install -y vault
 
-# Run SonarQube using Docker
-docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
-docker ps
+
 
 
 # Install MariaDB
