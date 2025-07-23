@@ -11,6 +11,12 @@ sudo yum install -y git wget unzip curl yum-utils
 sudo dnf install -y java-17-amazon-corretto
 java -version
 
+# Install npm
+sudo dnf install nodejs -y
+node -v
+npm -v
+
+
 # Install Jenkins
 sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
 sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
