@@ -7,9 +7,9 @@ pipeline {
     environment  {
         SCANNER_HOME= tool 'sonarqube-scanner'
         AWS_ACCOUNT_ID = '421954350274'
-        AWS_ECR_REPO_NAME = 'Swiggy'
+        AWS_ECR_REPO_NAME = 'swiggy'
         AWS_DEFAULT_REGION = 'us-east-1'
-        REPOSITORY_URI = "421954350274.dkr.ecr.us-east-1.amazonaws.com/Swiggy"
+        REPOSITORY_URI = "421954350274.dkr.ecr.us-east-1.amazonaws.com/swiggy"
 
     }
     stages {
@@ -34,8 +34,8 @@ pipeline {
                     withSonarQubeEnv('sonarqube-scanner') {
                         sh ''' 
                         $SCANNER_HOME/bin/sonarqube-scanner \
-                        -Dsonar.projectName=Swiggy \
-                        -Dsonar.projectKey=Swiggy 
+                        -Dsonar.projectName=swiggy \
+                        -Dsonar.projectKey=swiggy 
                         '''
                     }
                 }
@@ -63,6 +63,8 @@ pipeline {
                 '''
             }
         }
+
+        // this step it will take 45 min
         stage('OWASP FS Scan') {
             steps {
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
@@ -111,8 +113,8 @@ pipeline {
                 GIT_REPO_NAME = "Swiggy-GitOps-project"
                 GIT_EMAIL = "Yaswanth.arumulla@gmail.com"
                 GIT_USER_NAME = "arumullayaswanth"
-                AWS_ECR_REPO_NAME = 'Swiggy'
-                REPOSITORY_URI = "421954350274.dkr.ecr.us-east-1.amazonaws.com/Swiggy"
+                AWS_ECR_REPO_NAME = 'swiggy'
+                REPOSITORY_URI = "421954350274.dkr.ecr.us-east-1.amazonaws.com/swiggy"
                 YAML_FILE = "deployment.yml"
             }
             steps {
@@ -143,7 +145,7 @@ pipeline {
                       "Build Number: ${env.BUILD_NUMBER}<br/>" +
                       "URL: ${env.BUILD_URL}<br/>",
                 to: 'yaswanth.arumulla@gmail.com',
-                attachmentsPattern: 'trivyfs.txt,trivyimage.txt,dependency-check-report.xml'
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
     }
