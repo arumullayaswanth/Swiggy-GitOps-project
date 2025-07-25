@@ -1,11 +1,6 @@
 # Complete DevOps Stack Installation Guide (Jenkins, Docker, K8s, Terraform, etc.)
 
 
-
-
-
-
-
 ## ✅ Step 1: Clone the GitHub Repository
 
 1. Open **VS Code**.
@@ -254,40 +249,30 @@ Log in with:
   - **Confirm Password**:`yaswanth`   
   - **update**
 
-
-
 ## 🧪 SonarQube & Jenkins Integration 
 This guide will walk you through integrating **SonarQube** with **Jenkins** for static code analysis, from setting up the project in SonarQube to configuring Jenkins plugins and credentials.
 
-## 🔹 Step 10.1: Create a Project in SonarQube
+## 🔹 Step 10.2: Generate a Token in SonarQube for Your Project
 
-1. Open **SonarQube Dashboard** in your browser (`http://localhost:9000`).
-2. Click **Projects** → **Manually** → **Create Project**.
-3. Fill in:
-   - **Project Display Name**: `swiggy`
-   - **Project Key**: (automatically generated)
-   - **Main Branch Name**:`master` //Your Git default branch → `master` So, in SonarQube → set Main branch name to:`master`
-4. Click **setup**.
-5. Under **Setup your project for Clean as You Code**, choose:
-   - **What should be the baseline for new code?** → Select **Use the Getting Started tutorial**
-6. Click **Create Project**.
+1. **Open the SonarQube Dashboard** in your browser  
+   - Example: `http://localhost:9000` or your server's URL.
 
-## 🔹 Step 10.2: Generate a Token for Your Project
-0. open swiggy project
-1. Click **Locally** → **Analyze your project**.
-2. When prompted for a token:
-   - Click **Generate a project token**.
-   - **Token name**: (enter a name, e.g., `swiggy-token`)
+2. Navigate to: **Administration** → Under **Security** → click **Users**
+
+3. click the **Tokens** down Icon button.
+
+5. Click **Generate Token** and fill in:
+   - **Token name**: `token`
    - **Expires in**: `No expiration`
-   -  **swiggy-token:**`sqp_cc249cfe9a25cb61880787076049fc7d56310005`
-3. Click **Generate**.
-4. **Copy the token** – you'll need it in Jenkins.
 
----
+5. Click **Generate** and **copy the token**.  
+   ⚠️ **Important:** You will not be able to view this token again, so copy and save it securely.
 
----
+6. Done – this token will be used in **Jenkins** for authentication with SonarQube.
 
-## 🔹 Step 4: Add SonarQube Token as Jenkins Credential
+
+
+## 🔹 Step 10.2: Add SonarQube Token as Jenkins Credential
 
 1. Go to **Jenkins Dashboard** → **Manage Jenkins** → **Credentials**.
 2. Click **System** → **Global credentials (unrestricted)**.
@@ -295,26 +280,23 @@ This guide will walk you through integrating **SonarQube** with **Jenkins** for 
 4. Fill in:
    - **Kind**: `Secret text`
    - **Secret**: *(paste your SonarQube token)*
-   - **ID**: `sonarqube`
-   - **Description**: `sonarqube token`
+   - **ID**: `sonarqube-token`
+   - **Description**: `sonarqube-token`
 5. Click **Create**.
 
----
+## 🔹 Step 10.3: Configure SonarQube Server in Jenkins
 
-## 🔹 Step 5: Configure SonarQube Server in Jenkins
-
-1. Go to **Jenkins Dashboard** → **Manage Jenkins** → **Configure System**.
+1. Go to **Jenkins Dashboard** → **Manage Jenkins** → **System**.
 2. Scroll down to the **SonarQube servers** section.
 3. Click **Add SonarQube** and fill:
-   - **Name**: `sonarqube`
+   - **Name**: `sonar-server`
    - **Server URL**: `http://localhost:9000` *(or your actual Sonar IP)*
-   - **Server Authentication Token**: Select `sonarqube` (from credentials)
+   - **Server Authentication Token**: Select `sonarqube-token` (from credentials)
 4. ✅ Check **Environment variables injection**.
 5. Click **Save**.
 
----
 
-## 🔹 Step 6: Configure Webhook in SonarQube
+## 🔹 Step 10.4: Configure Webhook in SonarQube
 
 1. Go to **SonarQube Dashboard** → **Administration**
 2. Under **Configuration**, click **Webhooks**
@@ -326,9 +308,8 @@ This guide will walk you through integrating **SonarQube** with **Jenkins** for 
 
 This allows SonarQube to notify Jenkins after analysis is complete.
 
----
 
-## 🔹 Step 7: Configure Tools
+## 🔹 Step 10.5: Configure Tools
 
 1. Go to **Jenkins Dashboard** → **Manage Jenkins** → **Tool**.
 
@@ -340,9 +321,9 @@ This allows SonarQube to notify Jenkins after analysis is complete.
        - select `install from adoptium.net`
           - version : `jdk-17.0.8.1+1
 
-3. Scroll to **SonarQube Scanner** section:
+3. Scroll to **SonarQube Scanner installations** section:
    - Click **Add SonarQube Scanner**
-   - **Name**: `sonarqube-scanner`
+   - **Name**: `sonar-scanner`
    - ✅ Check **Install automatically**
      - version : `SonarQube Scanner 7.0.1.4817` 
       - it is least version
@@ -378,14 +359,13 @@ This allows SonarQube to notify Jenkins after analysis is complete.
    - ✅ Check **Install automatically**
 
 4. Click **Save**.
-
 ---
 
-## 🔹 Step 7: 📧 Jenkins Email Notification Setup with Gmail 
+## 🔹 Step 11: 📧 Jenkins Email Notification Setup with Gmail 
 Follow these steps to set up **email notifications in Jenkins using your Gmail account**.
 
 
-#### 🔐 Step 7.1: Enable 2-Step Verification & App Password in Gmail
+#### 🔐 Step 11.1: Enable 2-Step Verification & App Password in Gmail
 
 1. Go to **[Gmail](https://mail.google.com)**.
 2. In the top-right, click **Manage your Google Account**.
@@ -399,7 +379,7 @@ Follow these steps to set up **email notifications in Jenkins using your Gmail a
    - 🔑 **Copy the generated password**
 
 
-#### 🔧 Step 7.2: Add Gmail Credentials in Jenkins
+#### 🔧 Step 11.2: Add Gmail Credentials in Jenkins
 
 1. Go to **Jenkins Dashboard** → **Manage Jenkins** → **Credentials**
 2. Click **System** → **Global credentials (unrestricted)**
@@ -412,16 +392,15 @@ Follow these steps to set up **email notifications in Jenkins using your Gmail a
    - **Description**: `email`
 5. Click **Create**
 
-#### ⚙️ Step 7.3: Configure Email Settings in Jenkins
+#### ⚙️ Step 11.3: Configure Email Settings in Jenkins
 
-1. Go to **Jenkins Dashboard** → **Manage Jenkins** → **Configure System**
+1. Go to **Jenkins Dashboard** → **Manage Jenkins** → **System**
 2. Scroll down to **Extended E-mail Notification**
    - **SMTP Server**: `smtp.gmail.com`
    - **SMTP Port**: `465`
    - Click **Advanced**
    - **Credentials**: Select the `email` credential
    - ✅ **Use SSL**
-   - ✅ **Use OAuth 2.0**
    - **Default Content Type**: `html (text/html)`
 
 3. Scroll down to **E-mail Notification**
@@ -438,7 +417,7 @@ Follow these steps to set up **email notifications in Jenkins using your Gmail a
        - **Test E-mail recipient**: `yaswanth.arumulla@gmail.com`
        - Click **Test Configuration** to verify
 
-#### 🔄 Step 7.4: Set Default Email Triggers in Jenkins
+#### 🔄 Step 11.4: Set Default Email Triggers in Jenkins
 
 1. Scroll down to **Default Triggers**
 2. Click the dropdown and select:
@@ -456,7 +435,255 @@ Follow these steps to set up **email notifications in Jenkins using your Gmail a
 
 ---
 
-piple run
+## 🛠️ Step 12: Create a Jenkins Pipeline Job (Create EKS Cluster)
+
+1. Go to Jenkins Dashboard
+2. Click **New Item**
+3. Name it: `eks-terraform`
+4. Select: **Pipeline**
+5. Click **OK**
+ - Pipeline:
+   - Definition : `Pipeline script from SCM`
+   - SCM : `Git`
+   - Repositories : `https://github.com/arumullayaswanth/Swiggy-GitOps-project.git`
+   - Branches to build : `*/master`
+   - Script Path : `eks-terraform/eks-jenkinsfile`
+   - Apply
+   - Save
+6. click **Build with Parameters**
+   - ACTION :
+    - Select Terraform action : `apply`
+    - **Build** 
+
+- To verify your EKS cluster, connect to your EC2 jumphost server and run:
+```bash
+aws eks --region us-east-1 update-kubeconfig --name project-eks
+kubectl get nodes
+```
+---
+
+## 🛠️ Step 13: Create a Jenkins Pipeline Job (Create Elastic Container Registry (ecr))
+
+1. Go to Jenkins Dashboard
+2. Click **New Item**
+3. Name it: `ecr-terraform`
+4. Select: **Pipeline**
+5. Click **OK**
+ - Pipeline:
+   - Definition : `Pipeline script from SCM`
+   - SCM : `Git`
+   - Repositories : `https://github.com/arumullayaswanth/Swiggy-GitOps-project.git`
+   - Branches to build : `*/master`
+   - Script Path : `ecr-terraform/ecr-jenkinfine`
+   - Apply
+   - Save
+6. click **Build with Parameters**
+   - ACTION :
+    - Select Terraform action : `apply`
+    - **Build** 
+
+7. To verify your EKS cluster, connect to your EC2 jumphost server and run:
+```bash
+aws ecr describe-repositories --region us-east-1
+```
+
+8. ✅ Verify Amazon ECR Repositories in AWS Console (us-east-1)
+This guide shows how to verify if your ECR repositories exist using the AWS Console UI.
+
+#### 🔹 manual process 
+
+**Amazon ECR → Private registry → Repositories**
+
+#### 🛠 Prerequisites
+
+- AWS Console access
+- IAM permissions to view Amazon ECR
+- Repositories to verify:
+  - `hotstar`
+
+#### 📘 Step-by-Step Instructions
+
+##### 1. Log in to AWS Console  
+🔗 [https://us-east-1.console.aws.amazon.com/](https://us-east-1.console.aws.amazon.com/)
+
+##### 2. Go to Elastic Container Registry  
+- In the top search bar, type: `ECR`
+- Click on **Elastic Container Registry**
+
+##### 3. Navigate to Repositories  
+- In the left sidebar, click:  
+  **Private registry → Repositories**  
+- Or go directly here:  
+  🔗 [https://us-east-1.console.aws.amazon.com/ecr/repositories](https://us-east-1.console.aws.amazon.com/ecr/repositories)
+
+##### 4. Verify Repositories  
+- Use the search bar to search each repository name:
+
+---
+## Step 14: Create a Jenkins Pipeline Job for Build and Push Docker Images to ECR
+
+### 🔐 Step 12.1: Add GitHub PAT to Jenkins Credentials
+
+1. Navigate to **Jenkins Dashboard** → **Manage Jenkins** → **Credentials** → **(global)** → **Global credentials (unrestricted)**.
+2. Click **“Add Credentials”**.
+3. In the form:
+   - **Kind**: `Secret text`
+   - **Secret**: `ghp_HKMTPOmxnnl5d1f73zh`
+   - **ID**: `my-git-pattoken`
+   - **Description**: `git credentials`
+4. Click **“OK”** to save.
+
+### 🚀 Step 12.2: ⚖️ Jenkins Pipeline Setup: Build and Push and update Docker Images to ECR
+
+1. Go to Jenkins Dashboard
+2. Click **New Item**
+3. Name it: `swiggy`
+4. Select: **Pipeline**
+5. Click **OK**
+ - Pipeline:
+   - Definition : `Pipeline script from SCM`
+   - SCM : `Git`
+   - Repositories : `https://github.com/arumullayaswanth/Swiggy-GitOps-project.git`
+   - Branches to build : `*/master`
+   - Script Path : `jenkinsfiles/swiggy`
+   - Apply
+   - Save
+6. click **Build**
+
+---
+## 🖥️ step 13 : 🎉 Install ArgoCD in Jumphost EC2
+
+### 13.1: Create Namespace for ArgoCD
+
+```bash
+kubectl create namespace argocd
+```
+
+### 13.2: Install ArgoCD in the Created Namespace
+
+```bash
+kubectl apply -n argocd \
+  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+### 13.3: Verify the Installation
+
+```bash
+kubectl get pods -n argocd
+```
+
+Ensure all pods are in `Running` state.
+
+### 13.4: Validate the Cluster
+
+Check your nodes and create a test pod if necessary:
+
+```bash
+kubectl get nodes
+```
+
+### 13.5: List All ArgoCD Resources
+
+```bash
+kubectl get all -n argocd
+```
+
+Sample output:
+
+```
+NAME                                                    READY   STATUS    RESTARTS   AGE
+pod/argocd-application-controller-0                     1/1     Running   0          106m
+pod/argocd-applicationset-controller-787bfd9669-4mxq6   1/1     Running   0          106m
+pod/argocd-dex-server-bb76f899c-slg7k                   1/1     Running   0          106m
+pod/argocd-notifications-controller-5557f7bb5b-84cjr    1/1     Running   0          106m
+pod/argocd-redis-b5d6bf5f5-482qq                        1/1     Running   0          106m
+pod/argocd-repo-server-56998dcf9c-c75wk                 1/1     Running   0          106m
+pod/argocd-server-5985b6cf6f-zzgx8                      1/1     Running   0          106m
+```
+### 14.6: 🚀 Expose ArgoCD Server Using LoadBalancer
+
+### 14.6.1: Edit the ArgoCD Server Service
+
+```bash
+kubectl edit svc argocd-server -n argocd
+```
+
+### 14.6.2: Change the Service Type
+
+Find this line:
+
+```yaml
+type: ClusterIP
+```
+
+Change it to:
+
+```yaml
+type: LoadBalancer
+```
+
+Save and exit (`:wq` for `vi`).
+
+### 14.6.3: Get the External Load Balancer DNS
+
+```bash
+kubectl get svc argocd-server -n argocd
+```
+
+Sample output:
+
+```bash
+NAME            TYPE           CLUSTER-IP     EXTERNAL-IP                           PORT(S)                          AGE
+argocd-server   LoadBalancer   172.20.1.100   a1b2c3d4e5f6.elb.amazonaws.com        80:31234/TCP,443:31356/TCP       2m
+```
+
+### 14.6.4: Access the ArgoCD UI
+
+Use the DNS:
+
+```bash
+https://<EXTERNAL-IP>.amazonaws.com
+```
+
+---
+
+### 14.7: 🔐 Get the Initial ArgoCD Admin Password
+
+```bash
+kubectl get secret argocd-initial-admin-secret -n argocd \
+  -o jsonpath="{.data.password}" | base64 -d && echo
+```
+
+### Login Details:
+
+* **Username:** `admin`
+* **Password:** (The output of the above command)
+
+---
+
+## Step 15:  Deploying with ArgoCD and Configuring Route 53 (Step-by-Step)
+
+### Step 15.1: Create Namespace in EKS (from Jumphost EC2)
+Run these commands on your jumphost EC2 server:
+```bash
+kubectl create namespace dev
+kubectl get namespaces
+```
+
+### Step 15.2: Create New Applicatio with ArgoCD
+1. Open the **ArgoCD UI** in your browser.
+2. Click **+ NEW APP**.
+3. Fill in the following:
+   - **Application Name:** `project`
+   - **Project Name:** `default`
+   - **Sync Policy:** `Automatic`
+   - **Repository URL:** `https://github.com/arumullayaswanth/Swiggy-GitOps-project.git`
+   - **Revision:** `HEAD`
+   - **Path:** `kubernetes-files`
+   - **Cluster URL:** `https://kubernetes.default.svc`
+   - **Namespace:** `dev`
+4. Click **Create**.
+
 
 
 
