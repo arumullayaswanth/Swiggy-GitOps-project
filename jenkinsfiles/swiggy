@@ -72,13 +72,15 @@ pipeline {
         stage('OWASP FS Scan') {
             steps {
                 dir('Swiggy') {   // Ensure you are scanning the right folder
-                dependencyCheck additionalArguments: '--scan . --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                    dependencyCheck additionalArguments: '--scan . --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                }
             }
         }
+
         stage('Trivy File Scan') {
             steps {
-                dir('client') {
+                dir('Swiggy') {
                     sh 'trivy fs . > trivyfs.txt'
                 }
             }
