@@ -157,5 +157,4 @@ pipeline {
                 attachmentsPattern: 'trivyfs.txt,trivyimage.txt,**/dependency-check-report.xml'
            }
       }
-    }
 }
