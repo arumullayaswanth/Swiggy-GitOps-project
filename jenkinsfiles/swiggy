@@ -1,97 +1,81 @@
 pipeline {
-    agent any
-
+    agent any 
     tools {
         jdk 'jdk'
         nodejs 'nodejs'
     }
+    environment  {
+        SCANNER_HOME= tool 'sonar-scanner'                // replace your sonarqube scanner name
+        SONARQUBE_SERVER  = 'sonar-server'                // replace your Jenkins global SonarQube server name (Manage Jenkins > Configure System)
+        AWS_ACCOUNT_ID = '421954350274'                   // replace AWS account ID
+        AWS_ECR_REPO_NAME = 'swiggy'                      //replace ECR repository name
+        SONAR_TOKEN_CRED  = 'sonarqube-token'            // Jenkins secret text credential id
+        AWS_DEFAULT_REGION = 'us-east-1'                 // replace AWS region
+        REPOSITORY_URI = "421954350274.dkr.ecr.us-east-1.amazonaws.com"        // replace your repository URL
 
-    environment {
-        SONARQUBE_SERVER   = 'sonar-server'                          // Jenkins -> Configure System -> SonarQube servers (name)
-        AWS_ACCOUNT_ID     = '421954350274'
-        AWS_ECR_REPO_NAME  = 'swiggy'
-        AWS_DEFAULT_REGION = 'us-east-1'
-        REPOSITORY_URI     = "421954350274.dkr.ecr.us-east-1.amazonaws.com"
     }
-
     stages {
-
-        stage('Initialize Tools') {
-            steps {
-                script {
-                    // set SCANNER_HOME correctly (can't reliably call `tool` inside env for all setups)
-                    env.SCANNER_HOME = tool 'sonar-scanner'
-                }
-            }
-        }
-
         stage('Cleaning Workspace') {
             steps {
                 cleanWs()
             }
         }
-
         stage('Checkout from Git') {
             steps {
                 git branch: 'master', url: 'https://github.com/arumullayaswanth/Swiggy-GitOps-project.git'
             }
         }
-
-        stage('List Files') {
+        stage("List Files") {
             steps {
-                sh 'ls -la'
+                sh 'ls -la' // verfy files after checkout
             }
         }
-
         stage('Sonarqube Analysis') {
             steps {
                 dir('Swiggy') {
                     withSonarQubeEnv(env.SONARQUBE_SERVER) {
-                        sh """
+                        // change your prohect name my project name is swiggy
+                        sh ''' 
                         ${SCANNER_HOME}/bin/sonar-scanner \
-                          -Dsonar.projectKey=swiggy \
-                          -Dsonar.projectName=swiggy
-                        """
+                        -Dsonar.projectName=swiggy \
+                        -Dsonar.projectKey=swiggy 
+                        '''
                     }
                 }
             }
         }
-
         stage('Quality Check') {
             steps {
                 script {
-                    timeout(time: 1, unit: 'HOURS') {
-                        // credentialsId is NOT a valid arg for waitForQualityGate
-                        waitForQualityGate abortPipeline: true
-                    }
+                    // This requires the "Quality Gates" webhook to be configured in SonarQube
+                    waitForQualityGate abortPipeline: false, credentialsId: env.SONAR_TOKEN_CRED 
                 }
             }
         }
-
         stage('Install Dependencies') {
             steps {
                 sh '''
-                  cd Swiggy
-                  if [ -f package.json ]; then
-                      rm -rf node_modules package-lock.json
-                      npm install
-                  else
-                      echo "Error: package.json not found in Swiggy!"
-                      exit 1
-                  fi
+                cd Swiggy
+                ls -la  # Verify package.json exists
+                if [ -f package.json ]; then
+                    rm -rf node_modules package-lock.json  # Remove old dependencies
+                    npm install  # Install fresh dependencies
+                else
+                    echo "Error: package.json not found in Swiggy!"
+                    exit 1
+                fi
                 '''
             }
         }
 
+        // this step it will take 45 min
         stage('OWASP FS Scan') {
             steps {
-                dir('Swiggy') {
+                dir('Swiggy') {   // Ensure you are scanning the right folder
                     dependencyCheck additionalArguments: '--scan . --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
                     dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                }
             }
         }
-
         stage('Trivy File Scan') {
             steps {
                 dir('client') {
@@ -99,74 +83,76 @@ pipeline {
                 }
             }
         }
-
-        stage('Docker Image Build') {
+        // no change in this stage
+        stage("Docker Image Build") {
             steps {
-                dir('Swiggy') {
-                    sh '''
-                      docker system prune -f
-                      docker container prune -f
-                      docker build -t ${AWS_ECR_REPO_NAME}:latest .
-                    '''
+                script {
+                    dir('Swiggy') {
+                            sh 'docker system prune -f'
+                            sh 'docker container prune -f'
+                            sh 'docker build -t ${AWS_ECR_REPO_NAME} .'
+                    }
                 }
             }
         }
-
-        stage('ECR Image Pushing') {
+        // no change in this stage
+        stage("ECR Image Pushing") {
             steps {
-                sh '''
-                  aws ecr get-login-password --region ${AWS_DEFAULT_REGION} \
-                    | docker login --username AWS --password-stdin ${REPOSITORY_URI}
-                  docker tag ${AWS_ECR_REPO_NAME}:latest ${REPOSITORY_URI}/${AWS_ECR_REPO_NAME}:${BUILD_NUMBER}
-                  docker push ${REPOSITORY_URI}/${AWS_ECR_REPO_NAME}:${BUILD_NUMBER}
-                '''
+                script {
+                        sh 'aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${REPOSITORY_URI}'
+                        sh 'docker tag ${AWS_ECR_REPO_NAME}:latest ${REPOSITORY_URI}/${AWS_ECR_REPO_NAME}:${BUILD_NUMBER}'
+                        sh 'docker push ${REPOSITORY_URI}/${AWS_ECR_REPO_NAME}:${BUILD_NUMBER}'
+                }
             }
         }
-
-        stage('TRIVY Image Scan') {
+        // no change in this stage
+        stage("TRIVY Image Scan") {
             steps {
-                sh 'trivy image ${REPOSITORY_URI}/${AWS_ECR_REPO_NAME}:${BUILD_NUMBER} > trivyimage.txt'
+                sh 'trivy image ${REPOSITORY_URI}${AWS_ECR_REPO_NAME}:${BUILD_NUMBER} > trivyimage.txt' 
             }
         }
-
+        stage('Checkout Code') {
+            steps {
+                git branch: 'master', url: 'https://github.com/arumullayaswanth/Swiggy-GitOps-project.git'
+            }
+        }
         stage('Update Deployment file') {
             environment {
-                GIT_REPO_NAME = "Swiggy-GitOps-project"
-                GIT_EMAIL     = "yaswanth.arumulla@gmail.com"
-                GIT_USER_NAME = "arumullayaswanth"
-                YAML_FILE     = "deployment.yml"
+                GIT_REPO_NAME = "Swiggy-GitOps-project"      // replace your github rep name
+                GIT_EMAIL = "yaswanth.arumulla@gmail.com"    //replacr your email id
+                GIT_USER_NAME = "arumullayaswanth"           // replace your user name
+                YAML_FILE = "deployment.yml"
             }
             steps {
                 dir('kubernetes-files') {
                     withCredentials([string(credentialsId: 'my-git-pattoken', variable: 'git_token')]) {
-                        sh """
-                          git config user.email "${GIT_EMAIL}"
-                          git config user.name "${GIT_USER_NAME}"
+                        sh '''
+                            git config user.email "${GIT_EMAIL}"
+                            git config user.name "${GIT_USER_NAME}"
+                            BUILD_NUMBER=${BUILD_NUMBER}
+                            echo $BUILD_NUMBER
 
-                          sed -i "s#image:.*#image: ${REPOSITORY_URI}/${AWS_ECR_REPO_NAME}:${BUILD_NUMBER}#g" ${YAML_FILE}
-                          git add ${YAML_FILE}
-                          git commit -m "Update ${AWS_ECR_REPO_NAME} image to version ${BUILD_NUMBER}" || echo "No changes to commit"
-                          git push https://${git_token}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:master
-                        """
+                            # push this image to your git hub
+                            sed -i "s#image:.*#image: ${REPOSITORY_URI}/${AWS_ECR_REPO_NAME}:$BUILD_NUMBER#g" ${YAML_FILE}
+                            git add .
+                            git commit -m "Update ${AWS_ECR_REPO_NAME} Image to version \${BUILD_NUMBER}"
+                            git push https://${git_token}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:master
+        
+                        '''
                     }
                 }
             }
         }
     }
-
     post {
         always {
-            emailext(
-                attachLog: true,
+            emailext attachLog: true,
                 subject: "'${currentBuild.result}'",
-                body: """
-                    Project: ${env.JOB_NAME}<br/>
-                    Build Number: ${env.BUILD_NUMBER}<br/>
-                    URL: ${env.BUILD_URL}<br/>
-                """,
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                       "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                        "URL: ${env.BUILD_URL}<br/>",
                 to: 'yaswanth.arumulla@gmail.com',
                 attachmentsPattern: 'trivyfs.txt,trivyimage.txt,**/dependency-check-report.xml'
-            )
-        }
-    }
+           }
+      }
 }
