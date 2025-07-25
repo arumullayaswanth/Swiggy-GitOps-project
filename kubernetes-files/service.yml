@@ -5,9 +5,9 @@ metadata:
   labels:
     app: swiggy-app
 spec:
-  type: NodePort
+  type: LoadBalancer   # Changed from NodePort to LoadBalancer
   ports:
-  - port: 80
-    targetPort: 3000
+  - port: 80           # External port
+    targetPort: 3000   # Container's port
   selector:
     app: swiggy-app
