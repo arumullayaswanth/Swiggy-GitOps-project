@@ -147,14 +147,46 @@ pipeline {
         }
     }
     post {
-        always {
-            emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                       "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                        "URL: ${env.BUILD_URL}<br/>",
-                to: 'yaswanth.arumulla@gmail.com',
-                attachmentsPattern: 'trivyfs.txt,trivyimage.txt,**/dependency-check-report.xml'
-           }
-      }
+    always {
+        script {
+            // Debugging: list files in workspace
+            sh "ls -la || true"
+        }
+
+        emailext (
+            subject: "Build ${currentBuild.result}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: """
+                <p>Hello,</p>
+                <p>The Jenkins build has completed with status: <b>${currentBuild.result}</b></p>
+                <p>Project: ${env.JOB_NAME}</p>
+                <p>Build Number: ${env.BUILD_NUMBER}</p>
+                <p>URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                <p>Attached are the reports from this build.</p>
+            """,
+            to: 'yaswanth.arumulla@gmail.com',
+            attachLog: true,  // Attach build log
+            attachmentsPattern: 'trivyfs.txt,trivyimage.txt,**/dependency-check-report.xml'
+        )
+    }
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
