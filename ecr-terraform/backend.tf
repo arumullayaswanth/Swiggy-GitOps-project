@@ -1,13 +1,13 @@
 terraform {
   required_providers {
     aws = {
-        source = "hashicorp/aws"
-        version = ">= 5.25.0"
+      source  = "hashicorp/aws"
+      version = ">= 5.25.0"
     }
   }
 
   backend "s3" {
-    bucket = "swiggyaluru"
+    bucket = "swiggy222"
     key    = "ecr/terraform.tfstate"
     region = "us-east-1"
   }
